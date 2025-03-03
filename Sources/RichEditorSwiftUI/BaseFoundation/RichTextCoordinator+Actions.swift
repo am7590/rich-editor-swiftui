@@ -18,12 +18,6 @@ import Foundation
             case .copy: textView.copySelection()
             case .dismissKeyboard:
                 textView.resignFirstResponder()
-            //            case .pasteImage(let image):
-            //                pasteImage(image)
-            //            case .pasteImages(let images):
-            //                pasteImages(images)
-            //            case .pasteText(let text):
-            //                pasteText(text)
             case .print:
                 break
             case .redoLatestChange:
@@ -71,8 +65,10 @@ import Foundation
                 textView
                     .setRichTextFont(font ?? .standardRichTextFont, at: range)
             case .setLink(let link):
-                if let link, link != self.context.link {
-                    setLink(link)
+                if link == nil {
+                    context.insertLink(value: true)
+                } else if link != self.context.link {
+                    setLink(link ?? "www.google.com")
                 } else {
                     removeLink()
                 }
@@ -81,43 +77,6 @@ import Foundation
     }
 
     extension RichTextCoordinator {
-
-        //    func paste<T: RichTextInsertable>(_ data: RichTextInsertion<T>) {
-        //        if let data = data as? RichTextInsertion<ImageRepresentable> {
-        //            pasteImage(data)
-        //        } else if let data = data as? RichTextInsertion<[ImageRepresentable]> {
-        //            pasteImages(data)
-        //        } else if let data = data as? RichTextInsertion<String> {
-        //            pasteText(data)
-        //        } else {
-        //            print("Unsupported media type")
-        //        }
-        //    }
-        //
-        //    func pasteImage(_ data: RichTextInsertion<ImageRepresentable>) {
-        //        textView.pasteImage(
-        //            data.content,
-        //            at: data.index,
-        //            moveCursorToPastedContent: data.moveCursor
-        //        )
-        //    }
-        //
-        //    func pasteImages(_ data: RichTextInsertion<[ImageRepresentable]>) {
-        //        textView.pasteImages(
-        //            data.content,
-        //            at: data.index,
-        //            moveCursorToPastedContent: data.moveCursor
-        //        )
-        //    }
-
-        //    func pasteText(_ data: RichTextInsertion<String>) {
-        //        textView.pasteText(
-        //            data.content,
-        //            at: data.index,
-        //            moveCursorToPastedContent: data.moveCursor
-        //        )
-        //    }
-
         func setAttributedString(to newValue: NSAttributedString?) {
             guard let newValue else { return }
             textView.setRichText(newValue)
