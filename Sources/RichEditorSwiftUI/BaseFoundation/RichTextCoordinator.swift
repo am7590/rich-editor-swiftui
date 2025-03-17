@@ -74,7 +74,6 @@ open class RichTextCoordinator: NSObject {
         super.init()
         self.textView.delegate = self
         subscribeToUserActions()
-        setupPasteDetection()
     }
 #if canImport(UIKit)
 
@@ -225,39 +224,43 @@ extension RichTextCoordinator {
     /// Sync the rich text context with the text view.
     func syncContextWithTextViewAfterDelay() {
         let font = textView.richTextFont ?? .standardRichTextFont
-        sync(&context.attributedString, with: textView.attributedString)
-        sync(&context.selectedRange, with: textView.selectedRange)
-        sync(&context.canCopy, with: textView.hasSelectedRange)
-        sync(
-            &context.canRedoLatestChange,
-            with: textView.undoManager?.canRedo ?? false)
-        sync(
-            &context.canUndoLatestChange,
-            with: textView.undoManager?.canUndo ?? false)
-        sync(&context.fontName, with: font.fontName)
-        sync(&context.fontSize, with: font.pointSize)
-        sync(&context.isEditingText, with: textView.isFirstResponder)
-        sync(
-            &context.paragraphStyle,
-            with: textView.richTextParagraphStyle ?? .default)
-        sync(
-            &context.textAlignment,
-            with: textView.richTextAlignment ?? .left)
-        sync(&context.link, with: textView.richTextLink)
+        Task {
+            await MainActor.run {
+                sync(&context.attributedString, with: textView.attributedString)
+                sync(&context.selectedRange, with: textView.selectedRange)
+                sync(&context.canCopy, with: textView.hasSelectedRange)
+                sync(
+                    &context.canRedoLatestChange,
+                    with: textView.undoManager?.canRedo ?? false)
+                sync(
+                    &context.canUndoLatestChange,
+                    with: textView.undoManager?.canUndo ?? false)
+                sync(&context.fontName, with: font.fontName)
+                sync(&context.fontSize, with: font.pointSize)
+                sync(&context.isEditingText, with: textView.isFirstResponder)
+                sync(
+                    &context.paragraphStyle,
+                    with: textView.richTextParagraphStyle ?? .default)
+                sync(
+                    &context.textAlignment,
+                    with: textView.richTextAlignment ?? .left)
+                sync(&context.link, with: textView.richTextLink)
 
-        RichTextColor.allCases.forEach {
-            if let color = textView.richTextColor($0) {
-                context.setColor($0, to: color)
+                RichTextColor.allCases.forEach {
+                    if let color = textView.richTextColor($0) {
+                        context.setColor($0, to: color)
+                    }
+                }
+
+                let styles = textView.richTextStyles
+                RichTextStyle.allCases.forEach {
+                    let style = styles.hasStyle($0)
+                    context.setStyleInternal($0, to: style)
+                }
+
+                updateTextViewAttributesIfNeeded()
             }
         }
-
-        let styles = textView.richTextStyles
-        RichTextStyle.allCases.forEach {
-            let style = styles.hasStyle($0)
-            context.setStyleInternal($0, to: style)
-        }
-
-        updateTextViewAttributesIfNeeded()
     }
 
     /// Sync the text binding with the text view.
