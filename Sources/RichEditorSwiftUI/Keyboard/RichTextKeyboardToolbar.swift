@@ -7,86 +7,86 @@
 //
 
 #if os(iOS) || os(macOS) || os(visionOS)
-  import SwiftUI
+import SwiftUI
 
-  /// This toolbar can be added above an iOS keyboard, to provide
-  /// rich text formatting in a compact form.
-  ///
-  /// This toolbar is needed since the ``RichTextEditor`` can not
-  /// use a `toolbar` modifier with `.keyboard` placement:
-  ///
-  /// ```swift
-  /// RichTextEditor(text: $text, context: context)
-  ///     .toolbar {
-  ///         ToolbarItemGroup(placement: .keyboard) {
-  ///             ....
-  ///         }
-  ///     }
-  /// ```
-  ///
-  /// Instead, add this toolbar below a ``RichTextEditor`` to let
-  /// it automatically show when the text editor is edited in iOS.
-  ///
-  /// You can inject additional leading and trailing buttons, and
-  /// customize the format sheet that is presented when users tap
-  /// format button:
-  ///
-  /// ```swift
-  /// VStack {
-  ///    RichTextEditor(...)
-  ///    RichTextKeyboardToolbar(
-  ///        context: context,
-  ///        leadingButtons: {},
-  ///        trailingButtons: {},
-  ///        formatSheet: { $0 }
-  ///    )
-  /// }
-  /// ```
-  ///
-  /// These view builders provide you with standard views. Return
-  /// `$0` to use these standard views, or return any custom view
-  /// that you want to use instead.
-  ///
-  /// You can configure and style the view by applying its config
-  /// and style view modifiers to your view hierarchy:
-  ///
-  /// ```swift
-  /// VStack {
-  ///    RichTextEditor(...)
-  ///    RichTextKeyboardToolbar(...)
-  /// }
-  /// .richTextKeyboardToolbarStyle(...)
-  /// .richTextKeyboardToolbarConfig(...)
-  /// ```
-  ///
-  /// For more information, see ``RichTextKeyboardToolbarConfig``
-  /// and ``RichTextKeyboardToolbarStyle``.
-  public struct RichTextKeyboardToolbar<
+/// This toolbar can be added above an iOS keyboard, to provide
+/// rich text formatting in a compact form.
+///
+/// This toolbar is needed since the ``RichTextEditor`` can not
+/// use a `toolbar` modifier with `.keyboard` placement:
+///
+/// ```swift
+/// RichTextEditor(text: $text, context: context)
+///     .toolbar {
+///         ToolbarItemGroup(placement: .keyboard) {
+///             ....
+///         }
+///     }
+/// ```
+///
+/// Instead, add this toolbar below a ``RichTextEditor`` to let
+/// it automatically show when the text editor is edited in iOS.
+///
+/// You can inject additional leading and trailing buttons, and
+/// customize the format sheet that is presented when users tap
+/// format button:
+///
+/// ```swift
+/// VStack {
+///    RichTextEditor(...)
+///    RichTextKeyboardToolbar(
+///        context: context,
+///        leadingButtons: {},
+///        trailingButtons: {},
+///        formatSheet: { $0 }
+///    )
+/// }
+/// ```
+///
+/// These view builders provide you with standard views. Return
+/// `$0` to use these standard views, or return any custom view
+/// that you want to use instead.
+///
+/// You can configure and style the view by applying its config
+/// and style view modifiers to your view hierarchy:
+///
+/// ```swift
+/// VStack {
+///    RichTextEditor(...)
+///    RichTextKeyboardToolbar(...)
+/// }
+/// .richTextKeyboardToolbarStyle(...)
+/// .richTextKeyboardToolbarConfig(...)
+/// ```
+///
+/// For more information, see ``RichTextKeyboardToolbarConfig``
+/// and ``RichTextKeyboardToolbarStyle``.
+public struct RichTextKeyboardToolbar<
     LeadingButtons: View, TrailingButtons: View, FormatSheet: View
-  >: View {
+>: View {
 
     /**
      Create a rich text keyboard toolbar.
 
      - Parameters:
-       - context: The context to affect.
-       - leadingButtons: The leading buttons to place after the leading actions.
-       - trailingButtons: The trailing buttons to place before the trailing actions.
-       - formatSheet: The rich text format sheet to use, by default ``RichTextFormat/Sheet``.
+     - context: The context to affect.
+     - leadingButtons: The leading buttons to place after the leading actions.
+     - trailingButtons: The trailing buttons to place before the trailing actions.
+     - formatSheet: The rich text format sheet to use, by default ``RichTextFormat/Sheet``.
      */
     public init(
-      context: RichEditorState,
-      @ViewBuilder leadingButtons: @escaping (StandardLeadingButtons) ->
+        context: RichEditorState,
+        @ViewBuilder leadingButtons: @escaping (StandardLeadingButtons) ->
         LeadingButtons,
-      @ViewBuilder trailingButtons: @escaping (StandardTrailingButtons) ->
+        @ViewBuilder trailingButtons: @escaping (StandardTrailingButtons) ->
         TrailingButtons,
-      @ViewBuilder formatSheet: @escaping (StandardFormatSheet) ->
+        @ViewBuilder formatSheet: @escaping (StandardFormatSheet) ->
         FormatSheet
     ) {
-      self._context = ObservedObject(wrappedValue: context)
-      self.leadingButtons = leadingButtons
-      self.trailingButtons = trailingButtons
-      self.formatSheet = formatSheet
+        self._context = ObservedObject(wrappedValue: context)
+        self.leadingButtons = leadingButtons
+        self.trailingButtons = trailingButtons
+        self.formatSheet = formatSheet
     }
 
     public typealias StandardLeadingButtons = EmptyView
@@ -113,135 +113,180 @@
     private var style
 
     public var body: some View {
-      VStack(spacing: 0) {
-        HStack(spacing: style.itemSpacing) {
-          leadingViews
-          Spacer()
-            .frame(minWidth: 0, maxWidth: .infinity)
-          trailingViews
+        VStack(spacing: 0) {
+            HStack(spacing: 8) {
+                leadingViews
+                Spacer()
+                trailingViews
+            }
+            .padding(10)
         }
-        .padding(10)
-      }
-      .environment(\.sizeCategory, .medium)
-      .frame(height: style.toolbarHeight)
-      .overlay(Divider(), alignment: .bottom)
-      .accentColor(.primary)
-      .background(
-        Color.primary.colorInvert()
-          .overlay(Color.white.opacity(0.2))
-          .shadow(
-            color: style.shadowColor, radius: style.shadowRadius,
-            x: 0, y: 0)
-      )
-      .opacity(shouldDisplayToolbar ? 1 : 0)
-      .offset(y: shouldDisplayToolbar ? 0 : style.toolbarHeight)
-      .frame(height: shouldDisplayToolbar ? nil : 0)
-      .sheet(isPresented: $isFormatSheetPresented) {
-        formatSheet(
-          .init(context: context)
+        .environment(\.sizeCategory, .medium)
+        .frame(height: style.toolbarHeight)
+        .overlay(Divider(), alignment: .bottom)
+        .accentColor(.primary)
+        .background(
+            Color.primary.colorInvert()
+                .overlay(Color.white.opacity(0.2))
+                .shadow(
+                    color: style.shadowColor, radius: style.shadowRadius,
+                    x: 0, y: 0)
         )
-        .prefersMediumSize()
-      }
+        .opacity(shouldDisplayToolbar ? 1 : 0)
+        .offset(y: shouldDisplayToolbar ? 0 : style.toolbarHeight)
+        .frame(height: shouldDisplayToolbar ? nil : 0)
+        .sheet(isPresented: $isFormatSheetPresented) {
+            formatSheet(
+                .init(context: context)
+            )
+            .prefersMediumSize()
+        }
     }
-  }
+}
 
-  extension View {
+extension View {
 
     @ViewBuilder
     fileprivate func prefersMediumSize() -> some View {
-      #if os(macOS)
+#if os(macOS)
         self
-      #else
+#else
         if #available(iOS 16, *) {
-          self.presentationDetents([.medium])
+            self.presentationDetents([.medium])
         } else {
-          self
+            self
         }
-      #endif
+#endif
     }
-  }
+}
 
-  extension RichTextKeyboardToolbar {
+extension RichTextKeyboardToolbar {
 
     fileprivate var isCompact: Bool {
-      horizontalSizeClass == .compact
+        horizontalSizeClass == .compact
     }
-  }
+}
 
-  extension RichTextKeyboardToolbar {
+extension RichTextKeyboardToolbar {
 
     fileprivate var divider: some View {
-      Divider()
-        .frame(height: 25)
+        Divider()
+            .frame(height: 25)
     }
 
     @ViewBuilder
     fileprivate var leadingViews: some View {
-      RichTextAction.ButtonStack(
-        context: context,
-        actions: config.leadingActions,
-        spacing: style.itemSpacing
-      )
+        RichTextAction.ButtonStack(
+            context: context,
+            actions: config.leadingActions,
+            spacing: style.itemSpacing
+        )
 
-      leadingButtons(StandardLeadingButtons())
+        leadingButtons(StandardLeadingButtons())
 
-      divider
+        divider
+        ScrollView(.horizontal) {
 
-      Button(action: presentFormatSheet) {
-        Image.richTextFormat
-          .contentShape(Rectangle())
-      }
+            HStack(spacing: 10) {
 
-      RichTextStyle.ToggleStack(context: context)
-        .keyboardShortcutsOnly(if: isCompact)
+                ForEach(RichTextStyle.basicSet, id: \.self) { style in
+                    Button {
+                        context.toggleStyle(style)
+                    } label: {
+                        Image(systemName: style.imageName)
+                            .foregroundColor(context.hasStyle(style) ? .white : .primary)
+                            .frame(width: 30, height: 30)
+                            .background(
+                                context.hasStyle(style) ?
+                                RoundedRectangle(cornerRadius: 6).fill(Color.accentColor) :
+                                    RoundedRectangle(cornerRadius: 6).fill(Color.clear)
+                            )
+                            .contentShape(Rectangle())
+                    }
+                }
+            }
 
-      RichTextFont.SizePickerStack(context: context)
-        .keyboardShortcutsOnly()
+
+        }
+        .frame(maxWidth: 150)
+
+        //        Spacer()
+        //        divider
+        //        RichTextLinkButton(context: context)
+        //
+        //        RichTextHeadingButton(context: context)
+        //
+        //        divider
+
+        RichTextFont.SizePickerStack(context: context)
+            .keyboardShortcutsOnly()
     }
 
     @ViewBuilder
     fileprivate var trailingViews: some View {
-      RichTextAlignment.Picker(selection: $context.textAlignment)
-        .pickerStyle(.segmented)
-        .frame(maxWidth: 200)
-        .keyboardShortcutsOnly(if: isCompact)
 
-      trailingButtons(StandardTrailingButtons())
+        divider
 
-      RichTextAction.ButtonStack(
-        context: context,
-        actions: config.trailingActions,
-        spacing: style.itemSpacing
-      )
+        RichTextHeadingButton(context: context)
+
+        RichTextLinkButton(context: context)
+
+        divider
+
+        RichTextAlignment.Picker(selection: $context.textAlignment)
+            .pickerStyle(.segmented)
+            .frame(maxWidth: 25)
+            .keyboardShortcutsOnly(if: isCompact)
+
+        trailingButtons(StandardTrailingButtons())
+
+        RichTextAction.ButtonStack(
+            context: context,
+            actions: config.trailingActions,
+            spacing: style.itemSpacing
+        )
     }
-  }
+}
 
-  extension View {
+extension View {
 
     @ViewBuilder
     fileprivate func keyboardShortcutsOnly(
-      if condition: Bool = true
+        if condition: Bool = true
     ) -> some View {
-      if condition {
-        self.hidden()
-          .frame(width: 0)
-      } else {
-        self
-      }
+        if condition {
+            self.hidden()
+                .frame(width: 0)
+        } else {
+            self
+        }
     }
-  }
+}
 
-  extension RichTextKeyboardToolbar {
+extension RichTextKeyboardToolbar {
 
     fileprivate var shouldDisplayToolbar: Bool {
-      context.isEditingText || config.alwaysDisplayToolbar
+        context.isEditingText || config.alwaysDisplayToolbar
     }
-  }
+}
 
-  extension RichTextKeyboardToolbar {
-
+extension RichTextKeyboardToolbar {
+    
     fileprivate func presentFormatSheet() {
-      isFormatSheetPresented = true
+        isFormatSheetPresented = true
     }
-  }
+}
 #endif
+
+extension RichTextStyle {
+    static var basicSet: [RichTextStyle] = [.bold, .italic, .underline, .strikethrough]
+
+    var imageName: String {
+        switch self {
+        case .bold: return "bold"
+        case .italic: return "italic"
+        case .underline: return "underline"
+        case .strikethrough: return "strikethrough"
+        }
+    }
+}
